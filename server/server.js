@@ -22,21 +22,13 @@ import formRoutes from "./routes/formRoutes.js"
 import './config/passport.js';
 // ...existing code...
 dotenv.config();
-const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_CLIENT_URL
 
 const app = express();
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || origin === NEXT_PUBLIC_URL) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+const corsOptions = {
+    origin: process.env.NEXT_PUBLIC_CLIENT_URL || 'http://localhost:3000',
+    credentials: true
+};
+app.use(cors(corsOptions));
 
 
 app.use(session({
@@ -46,7 +38,7 @@ app.use(session({
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
-        sameSite: 'None'
+        sameSite: 'lax'
     }
 }));
 app.use(express.json());
