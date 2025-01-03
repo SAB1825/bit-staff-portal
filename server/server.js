@@ -26,25 +26,27 @@ const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_CLIENT_URL
 
 const app = express();
 app.use(cors({
-    origin: NEXT_PUBLIC_URL,
+    origin: (origin, callback) => {
+        if (!origin || origin === NEXT_PUBLIC_URL) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Set-Cookie']
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.set('trust proxy', 1); // Enable proxy trust for secure cookies
 
 app.use(session({
     secret: process.env.JWT_SECRET,
     resave: false,
     saveUninitialized: false,
-    proxy: true,
     cookie: {
-        secure: true, // Required for cross-domain cookies in production
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
-        sameSite: 'none',
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        domain: process.env.NODE_ENV === 'production' ? '.sabaris.site' : undefined // Update with your domain
+        sameSite: 'lax'
     }
 }));
 app.use(express.json());
