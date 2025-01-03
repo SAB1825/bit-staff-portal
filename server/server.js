@@ -26,8 +26,16 @@ const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_CLIENT_URL
 
 const app = express();
 app.use(cors({
-    origin: `${NEXT_PUBLIC_URL}`,
-    credentials: true, 
+    origin: (origin, callback) => {
+        if (!origin || origin === NEXT_PUBLIC_URL) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 
