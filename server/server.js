@@ -26,25 +26,28 @@ const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_CLIENT_URL
 
 const app = express();
 app.use(cors({
-    origin: 'https://bitstaffqaurtersportal.sabaris.site',
+    origin: (origin, callback) => {
+        if (!origin || origin === NEXT_PUBLIC_URL) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 
 app.use(session({
-    secret: process.env.JWT_SECRET,
+    secret: 'bit',
     resave: false,
     saveUninitialized: false,
     cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        secure: true, // Since your frontend is on HTTPS
-        httpOnly: true,
-        sameSite: 'none', // Important for cross-domain
-        domain: 'sabaris.site' // Your domain
-    },
-    proxy: true
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true
+    }
 }));
 app.use(express.json());
 
