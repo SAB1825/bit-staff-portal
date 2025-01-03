@@ -26,16 +26,10 @@ const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_CLIENT_URL
 
 const app = express();
 app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || origin === NEXT_PUBLIC_URL) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: process.env.NEXT_PUBLIC_CLIENT_URL,
     credentials: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
 
@@ -44,13 +38,22 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000, 
+        secure: true, 
         httpOnly: true,
-        sameSite: 'lax'
-    }
+        sameSite: 'none', 
+        domain: '.sabaris.site' 
+    },
+    proxy: true 
 }));
 app.use(express.json());
-
+app.use((err, req, res, next) => {
+    console.error('Server error:', err);
+    res.status(500).json({ 
+        message: 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
 app.use(passport.initialize());
 app.use(passport.session());
 
