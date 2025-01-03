@@ -40,13 +40,13 @@ app.use(cors({
 
 
 app.use(session({
-    secret: 'bit',
+    secret: process.env.JWT_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-        maxAge: 7 * 24 * 60 * 60 * 1000,
         secure: process.env.NODE_ENV === 'production',
-        httpOnly: true
+        httpOnly: true,
+        sameSite: 'lax'
     }
 }));
 app.use(express.json());
