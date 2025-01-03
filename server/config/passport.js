@@ -17,7 +17,10 @@ passport.deserializeUser(async (id, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: '/auth/google/callback',
+    callbackURL: process.env.NODE_ENV === 'production'
+        ? 'https://bit-staff-portal.vercel.app/auth/google/callback'
+        : `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL}/auth/google/callback`,
+    proxy: true 
 }, async (accessToken, refreshToken, profile, done) => {
     try {
         let user = await User.findOne({ googleId: profile.id });
