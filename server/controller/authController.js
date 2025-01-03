@@ -1,28 +1,30 @@
-import User from '../modals/UserModal.js'; 
+import dotenv from "dotenv"
 
+dotenv.config()
+
+
+const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_CLIENT_URL
 export const loginSuccess = async (req, res) => {
     if (req.user) {
         res.json({
             success: true,
             message: 'User authenticated',
-            user: req.user,
+            user: {
+                ...req.user.toObject(),
+                profileImage: req.user.profileImage
+            },
         });
     } else {
-        const newUser = new User({
-            googleId: req.body.googleId, 
-            username: req.body.username,   
-            email: req.body.email,       
-        });
-        await newUser.save();
-        res.json({
-            success: true,
-            message: 'User created and authenticated',
-            user: newUser,
+        res.status(401).json({
+            success: false,
+            message: 'Unauthorized access'
         });
     }
 };
 
-// New logout function
+export const handleAuthFailure = (req, res) => {
+    res.redirect(`${NEXT_PUBLIC_URL}/unauthorized`);
+};
 export const logoutUser = (req, res) => {
     req.logout((err) => {
         if (err) {

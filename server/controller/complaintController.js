@@ -1,5 +1,5 @@
 import Complaint from '../modals/ComplaintModal.js';
-
+import Activity from '../modals/ActivityModal.js'
 export const createComplaint = async (req, res) => {
   try {
     const { title, description, availableDate, availableTime } = req.body;
@@ -25,7 +25,11 @@ export const createComplaint = async (req, res) => {
     });
 
     await complaint.save();
-
+    await Activity.create({
+      user: req.user,
+      type: 'COMPLAINT_CREATED',
+      description: `New complaint created: ${title}`
+    });
     res.status(201).json({
       success: true,
       message: 'Complaint created successfully',
@@ -69,6 +73,31 @@ export const getComplaintStats = async (req, res) => {
         });
     }
 };
+export const getAllComplaintStats = async (req, res) => {
+    try {
+        
+        const total = await Complaint.countDocuments({ });
+        const inProgress = await Complaint.countDocuments({ 
+            status: 'in-progress' 
+        });
+        const resolved = await Complaint.countDocuments({ 
+            status: 'resolved' 
+        });
+
+        res.json({
+            total,
+            inProgress,
+            resolved
+        });
+    } catch (error) {
+        console.error('Error fetching complaint stats:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching complaint statistics',
+            error: error.message
+        });
+    }
+};
 
 export const getComplaints = async (req, res) => {
     try {
@@ -88,13 +117,30 @@ export const getComplaints = async (req, res) => {
         });
     }
 };
+export const getAllComplaints = async (req, res) => {
+    try {
+        
+        const complaints = await Complaint.find({})
+            .sort({ createdAt: -1 })
+            .lean();
 
-export const getComplaintById = async (req, res) => {
+        res.json(complaints);
+    } catch (error) {
+        console.error('Error fetching complaints:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching complaints',
+            error: error.message,
+        });
+    }
+};
+
+export const 
+getComplaintById = async (req, res) => {
   try {
     const { complaintId } = req.params;
     const complaint = await Complaint.findOne({ 
       complaintId,
-      'user.googleId': req.user.googleId 
     });
 
     if (!complaint) {
@@ -133,7 +179,6 @@ export const deleteComplaint = async (req, res) => {
     // Find and delete the complaint
     const complaint = await Complaint.findOneAndDelete({ 
       complaintId,
-      'user.googleId': req.user.googleId // Ensure user owns the complaint
     });
 
     if (!complaint) {
@@ -181,7 +226,6 @@ export const updateComplaint = async (req, res) => {
     // Find and update the complaint
     const complaint = await Complaint.findOne({ 
       complaintId,
-      'user.googleId': req.user.googleId // Ensure user owns the complaint
     });
 
     if (!complaint) {
@@ -221,6 +265,64 @@ export const updateComplaint = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating complaint',
+      error: error.message
+    });
+  }
+};
+
+export const getTodayComplaints = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const complaints = await Complaint.find({
+      availableDate: {
+        $gte: today,
+        $lt: tomorrow
+      },
+      status: { $ne: 'resolved' }
+    }).populate('user');
+
+    res.status(200).json({
+      success: true,
+      data: complaints
+    });
+  } catch (error) {
+    console.error('Error fetching today\'s complaints:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching today\'s complaints',
+      error: error.message
+    });
+  }
+};
+export const getTodayCreatedComplaints = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const complaints = await Complaint.find({
+      createdAt: {
+        $gte: today,
+        $lt: tomorrow
+      }
+    }).populate('user');
+
+    res.status(200).json({
+      success: true,
+      data: complaints
+    });
+  } catch (error) {
+    console.error('Error fetching today\'s created complaints:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching today\'s created complaints',
       error: error.message
     });
   }
