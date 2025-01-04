@@ -1,6 +1,7 @@
 
 import express from 'express';
 import session from 'express-session';
+import cookieSession from 'cookie-session';
 import passport from 'passport';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -24,21 +25,25 @@ import './config/passport.js';
 dotenv.config();
 
 const app = express();
-const corsOptions = {
-    origin: process.env.NEXT_PUBLIC_CLIENT_URL || 'http://localhost:3000',
-    credentials: true
-};
-app.use(cors(corsOptions));
+const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_CLIENT_URL;
+app.set('trust proxy', 1);
 
+app.use(cors({
+    origin: NEXT_PUBLIC_URL,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(session({
-    secret: process.env.JWT_SECRET,
+    secret: process.env.JWT_SECRET || 'BIT',
     resave: false,
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
-        sameSite: 'None'
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000
     }
 }));
 app.use(express.json());
