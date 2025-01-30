@@ -13,7 +13,7 @@ export const createFormLink = async (req, res) => {
       email
     });
 
-    const formUrl = `${process.env.CLIENT_URL}/register/${token}`;
+    const formUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/register/${token}`;
 
     res.status(200).json({
       success: true,

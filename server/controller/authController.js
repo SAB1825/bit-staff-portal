@@ -4,6 +4,7 @@ dotenv.config()
 
 
 const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_CLIENT_URL
+
 export const loginSuccess = async (req, res) => {
     if (req.user) {
         res.json({

@@ -5,7 +5,6 @@ const inmateSchema = new mongoose.Schema({
   relation: { type: String, required: true },
   age: { type: Number, required: true }
 });
-
 const userSchema = new mongoose.Schema({
   googleId: { type: String },
   username: { type: String },

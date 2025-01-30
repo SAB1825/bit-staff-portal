@@ -19,20 +19,18 @@ import staffRoutes from "./routes/staffRoutes.js";
 import activityRoutes from "./routes/activityRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
 import formRoutes from "./routes/formRoutes.js"
-// Import passport config after models
 import './config/passport.js';
-// ...existing code...
 dotenv.config();
 
 const app = express();
 const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_CLIENT_URL;
 app.set('trust proxy', 1);
+app.use(express.json());
 
 app.use(cors({
     origin: NEXT_PUBLIC_URL,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(session({
@@ -46,19 +44,9 @@ app.use(session({
         maxAge: 24 * 60 * 60 * 1000
     }
 }));
-app.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept"
-    );
-    next();
-  });
-app.use(express.json());
 
 app.use(passport.initialize());
 app.use(passport.session());
-
 app.use('/auth', authRoutes);
 app.use('/api/complaints', complaintsRoutes);
 app.use('/api/guests', guestRoutes)
